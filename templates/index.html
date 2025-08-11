@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detector de Barrios</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        select, input { width: 100%; padding: 8px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Identificación de Barrios</h1>
+        
+        <div class="form-group">
+            <label for="persona">Seleccione una persona:</label>
+            <select id="persona">
+                <option value="">-- Seleccione --</option>
+                {% for persona in personas %}
+                    <option value="{{ persona[0] }}">{{ persona[1] }} {{ persona[2] }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="barrio">Barrio:</label>
+            <input type="text" id="barrio" readonly>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#persona').change(function() {
+                const personaId = $(this).val();
+                if (personaId) {
+                    $.get(`/obtener_barrio/${personaId}`)
+                        .done(function(data) {
+                            $('#barrio').val(data.barrio);
+                        })
+                        .fail(function() {
+                            $('#barrio').val('Error al obtener barrio');
+                        });
+                } else {
+                    $('#barrio').val('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

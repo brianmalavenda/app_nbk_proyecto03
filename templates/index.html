@@ -17,12 +17,14 @@
         
         <div class="form-group">
             <label for="persona">Seleccione una persona:</label>
-            <select id="persona">
-                <option value="">-- Seleccione --</option>
-                {% for persona in personas %}
-                    <option value="{{ persona[0] }}">{{ persona[1] }} {{ persona[2] }}</option>
-                {% endfor %}
-            </select>
+        <select id="persona">
+            <option value="">-- Seleccione --</option>
+            {% for persona in personas %}
+                <option value="{{ persona.id }}">
+                    {{ persona.nombre }} {{ persona.apellido }}
+                </option>
+            {% endfor %}
+        </select>
         </div>
         
         <div class="form-group">

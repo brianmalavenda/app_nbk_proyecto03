@@ -1,0 +1,18 @@
+[
+    {
+        "id": "1001",
+        "nombre": "Juan",
+        "apellido": "Pérez",
+        "direccion": "grito de alcorta y alessandri",
+        "localidad": "moron",
+        "barrio": "San José"
+    },
+    {
+        "id": "1002",
+        "nombre": "María",
+        "apellido": "García",
+        "direccion": "grito de alcorta y alessandri",
+        "localidad": "moron",
+        "barrio": "San José"
+    }
+]

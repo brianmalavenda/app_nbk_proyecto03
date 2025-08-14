@@ -12,9 +12,7 @@ def init_db():
                  id INTEGER PRIMARY KEY,
                  nombre TEXT,
                  apellido TEXT,
-                 direccion TEXT,
-                 utm_x REAL,
-                 utm_y REAL)''')
+                 direccion TEXT)''')
     
     # Tabla de barrios
     c.execute('''CREATE TABLE IF NOT EXISTS barrios (
@@ -25,9 +23,9 @@ def init_db():
     # Insertar datos de prueba
     # Personas
     personas = [
-        ('Yolanda', 'Nieves', 'Calle Primavera 123', 445000, 4455000),
-        ('Carlos', 'Gomez', 'Avenida Central 456', 446000, 4456000),
-        ('Maria', 'Lopez', 'Calle Roble 789', 447000, 4457000)
+        ('Yolanda', 'Nieves', 'grito de alcorta y alessandri', 'moron'),
+        ('Carlos', 'Gomez', 'Avenida Central 456', 'moron'),
+        ('Maria', 'Lopez', 'Calle Roble 789', 'moron')
     ]
     c.executemany('INSERT INTO personas (nombre, apellido, direccion, utm_x, utm_y) VALUES (?,?,?,?,?)', personas)
     
@@ -41,5 +39,3 @@ def init_db():
     
     conn.commit()
     conn.close()
-
-init_db()  # Ejecutar al inicio

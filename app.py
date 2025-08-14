@@ -1,133 +1,120 @@
-import sqlite3
 import json
 import os
 from flask import Flask, render_template, request, jsonify
+from shapely.geometry import Polygon, Point
+import requests
 
 app = Flask(__name__)
-
 # Configuración de rutas
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'sanmartin_proyects.db')
+# DB_PATH = os.path.join(BASE_DIR, 'sanmartin_proyects.db')
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
-
 # Asegurar que Flask use el directorio correcto
 app.template_folder = TEMPLATE_DIR
 
-def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
+class Persona(object):
+    def __init__(self, id, nombre, apellido, direccion, localidad):
+        self.id = id
+        self.nombre = nombre
+        self.apellido = apellido
+        self.direccion = direccion
+        self.localidad = localidad
+        print(self)
     
-    # Tabla de personas
-    c.execute('''CREATE TABLE IF NOT EXISTS personas (
-                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 nombre TEXT,
-                 apellido TEXT,
-                 direccion TEXT,
-                 utm_x REAL,
-                 utm_y REAL)''')
+    def __str__(self):
+        return "Nmbre %s %s: Vive en %s, %s" % (self.nombre, self.apellido, self.direccion, self.localidad )
     
-    # Tabla de barrios
-    c.execute('''CREATE TABLE IF NOT EXISTS barrios (
-                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 nombre TEXT,
-                 coordenadas TEXT)''')
+class Coordenadas(object):
+    def __init__(self, latitud, longitud):
+        self.id = id
+        self.latitud = latitud
+        self.longitud = longitud
+        print(self)
     
-    # Insertar datos de prueba solo si no existen
-    c.execute("SELECT COUNT(*) FROM personas")
-    if c.fetchone()[0] == 0:
-        personas = [
-            ('Yolanda', 'Nieves', 'Calle Primavera 123', 445000, 4455000),
-            ('Carlos', 'Gomez', 'Avenida Central 456', 446000, 4456000),
-            ('Maria', 'Lopez', 'Calle Roble 789', 447000, 4457000)
-        ]
-        c.executemany('INSERT INTO personas (nombre, apellido, direccion, utm_x, utm_y) VALUES (?,?,?,?,?)', personas)
-    
-    c.execute("SELECT COUNT(*) FROM barrios")
-    if c.fetchone()[0] == 0:
-        barrios = [
-            ('Centro', '[[445500, 4455500], [446500, 4455500], [446500, 4456500], [445500, 4456500]]'),
-            ('Norte', '[[446500, 4455500], [447500, 4455500], [447500, 4456500], [446500, 4456500]]'),
-            ('Sur', '[[444500, 4454500], [445500, 4454500], [445500, 4455500], [444500, 4455500]]')
-        ]
-        c.executemany('INSERT INTO barrios (nombre, coordenadas) VALUES (?,?)', barrios)
-    
-    conn.commit()
-    conn.close()
+    def __str__(self):
+        return "Latitud: %s, Longitud: %s" % (self.latitud, self.longitud)
 
-init_db()
+def cargar_personas():
+    try:
+        with open('./documents/personas.json', 'r', encoding='utf-8') as f:
+            personas_data = json.load(f)
+            return [Persona(**p) for p in personas_data]
+    except Exception as e:
+        print(f"Error cargando personas: {e}")
+        return []
 
-def punto_en_poligono(x, y, poligono):
-    n = len(poligono)
-    dentro = False
-    p1x, p1y = poligono[0]
-    for i in range(1, n + 1):
-        p2x, p2y = poligono[i % n]
-        if y > min(p1y, p2y):
-            if y <= max(p1y, p2y):
-                if x <= max(p1x, p2x):
-                    if p1y != p2y:
-                        xinters = (y - p1y) * (p2x - p1x) / (p2y - p1y) + p1x
-                    if p1x == p2x or x <= xinters:
-                        dentro = not dentro
-        p1x, p1y = p2x, p2y
-    return dentro
+# Cargar barrios desde JSON
+def cargar_barrios():
+    try:
+        with open('./documents/barrios.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Error cargando barrios: {e}")
+        return {}
+# Cargar datos al iniciar
+personas_list = cargar_personas()
+barrios_list = cargar_barrios()
 
-def obtener_barrio_por_utm(x, y):
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute('SELECT id, nombre, coordenadas FROM barrios')
-    barrios = c.fetchall()
+# Función buscar_persona corregida
+def buscar_persona(persona_id):
+    # Convertir a string para manejar diferentes formatos
+    persona_id = str(persona_id)
+    for persona in personas_list:
+        if str(persona.id) == persona_id:
+            print(f"✅ Persona encontrada: {persona.nombre} {persona.apellido}")
+            return persona
     
-    for barrio in barrios:
-        id_barrio, nombre, coords_str = barrio
-        try:
-            poligono = json.loads(coords_str)
-            if punto_en_poligono(x, y, poligono):
-                return nombre
-        except json.JSONDecodeError:
-            continue
-    
-    return "Barrio no encontrado"
+    print(f"\n❌ Persona con ID '{persona_id}' no encontrada")
+    return None
+
+@app.route('/direccion/<int:persona_id>')
+def buscar_direccion(direccion, localidad):
+    res = requests.get("https://apis.datos.gob.ar/georef/api/direcciones",
+    params={"direccion": direccion, "provincia": "06", "localidad": localidad}, timeout=5)
+    jsonbody = res.json()
+    if res.status_code != 200 or jsonbody['cantidad'] == 0:
+        print(f"\n❌ Dirección '{direccion}, {localidad}' no encontrada")
+        return None
+    ubicacion = jsonbody["direcciones"][0]["ubicacion"]
+    return Coordenadas(ubicacion["lat"], ubicacion["lon"])
 
 @app.route('/')
 def index():
     try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute('SELECT id, nombre, apellido FROM personas')
-        personas = c.fetchall()
-        conn.close()
-        return render_template('index.html', personas=personas)
+        print("Renderizando plantilla index.html")
+        # Renderizar la plantilla con los datos de las personas
+        return render_template('index.html', personas=personas_list)
     except Exception as e:
         return f"Error: {str(e)}"
 
 @app.route('/obtener_barrio/<int:persona_id>')
 def obtener_barrio(persona_id):
     try:
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute('SELECT utm_x, utm_y FROM personas WHERE id = ?', (persona_id,))
-        resultado = c.fetchone()
-        conn.close()
+        persona = buscar_persona(persona_id)
+        if not persona:
+            return jsonify({"error": "Persona no encontrada"}), 404
         
-        if resultado:
-            utm_x, utm_y = resultado
-            barrio = obtener_barrio_por_utm(utm_x, utm_y)
-            return jsonify({'barrio': barrio})
-        
-        return jsonify({'error': 'Persona no encontrada'}), 404
+        direccion = buscar_direccion(persona.direccion, persona.localidad)
+        if not direccion:
+            return jsonify({"error": "Dirección no encontrada"}), 404
+
+        punto = Point(direccion.longitud, direccion.latitud)
+
+        for barrio in barrios_list:           
+            polygon = Polygon(barrio['coordinates'])
+                  
+            if polygon.contains(punto):
+                print("✅ El punto está dentro del área.")
+                # Enviar al front un json con el nombre del barrio
+                # que esta esperando un "data" con el atributo "barrio"
+                # .done(function(data) {
+                # $('#barrio').val(data.barrio);
+                return jsonify({'barrio': barrio['name']})
+            else:
+                print("❌ El punto NO está dentro del área.")
+        return jsonify({'barrio': 'No existe'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/debug')
-def debug():
-    return f"""
-    <h1>Debug Info</h1>
-    <p>Directorio base: {BASE_DIR}</p>
-    <p>Ruta DB: {DB_PATH}</p>
-    <p>Directorio plantillas: {TEMPLATE_DIR}</p>
-    <p>Archivos en directorio plantillas: {os.listdir(TEMPLATE_DIR)}</p>
-    """
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

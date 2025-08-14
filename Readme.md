@@ -28,6 +28,12 @@ Entidades principales del modelo: [Personas], [Barrios], [Escuelas]
 **que hace**: api de transformacion de coordenadas geograficas
 **ejemplo**: de lon-lat a coordenadas UTM: https://epsg.io/transform#s_srs=4326&t_srs=3857&x=-58.0000000&y=-34.0000000
 
+#### Repositorios ejemplo
+
+**nombre**: OpenDataCordoba
+**url**: https://github.com/OpenDataCordoba/barrios/blob/main/caba_comunas.geojson
+**que hace**: tiene barrios definidos de cordoba
+
 
 ## Bibliotecas o Librerías
 

@@ -5,6 +5,11 @@ Entidades principales del modelo: [Personas], [Barrios], [Escuelas]
 
 ### Herramientas
 
+**repositorio base**: https://github.com/datosgobar/georef-ar-api
+**descripcion**: https://datosgobar.github.io/georef-ar-api/georef-api-development/
+
+**curso python**: https://www.youtube.com/watch?v=TkN2i-_4N4g
+
 **nombre**: https://developer.mapquest.com
 **que hace**: La podemos utilizar como google maps para medir distancia o viaje entre dos puntos
 **para que la utilizaríamos?**: esto podríamos hacerlo para medir la distancia y el tiempo entre la direccion de una persona y el punto de destino para XX tarea que tenga que hacer la persona
@@ -18,6 +23,19 @@ Entidades principales del modelo: [Personas], [Barrios], [Escuelas]
 **que hace**: se puede obtener a partir de distintos filtros, las instituciones educativas por nivel educativo, predios, distincion entre privados y publicos y todo eso exportable en formato geojson
 **para que la utilizaríamos?**: con esto tenemos la ubicacion de cada escuela publica que son los lugares donde se vota en las elecciones
 **ejemplo**: predios educativos -> https://mapaescolar.abc.gob.ar/mapaescolar/#map=14.5/-58.633918486371144/-34.676976093036934/0/0,5/0a131c2a-ac99-4300-8925-9a40fdac9b16
+
+**nombre**: https://epsg.io
+**que hace**: api de transformacion de coordenadas geograficas
+**ejemplo**: de lon-lat a coordenadas UTM: https://epsg.io/transform#s_srs=4326&t_srs=3857&x=-58.0000000&y=-34.0000000
+
+
+## Bibliotecas o Librerías
+
+**nombre**: https://www.elastic.co/docs
+**descripcion**: para trabajar con consultas a archivos largos y obtimizar una busqueda
+
+**nombre**: https://www.digitalocean.com/community/
+**descripcion**: para trabajar con docker
 
 
 ### Scrtipt
